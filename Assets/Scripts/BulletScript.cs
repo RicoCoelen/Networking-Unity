@@ -5,13 +5,7 @@ using UnityEngine;
 public class BulletScript : MonoBehaviour
 {
     public Vector3 velocity = new Vector3(0,0,0);
-    public int bulletSpeed = 10;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
+    public float bulletSpeed = 0.1f;
 
     private void FixedUpdate()
     {

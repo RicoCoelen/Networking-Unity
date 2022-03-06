@@ -11,10 +11,11 @@ public class NetworkScript : MonoBehaviour {
     int myID;
 
     bool upKey, downKey, leftKey, rightKey, spaceBar;
-
     private int lastBullet = -1;
     private int bulletCache = 100;
     private GameObject[] bullets;
+    private GameObject EmptyObj;
+
     [SerializeField]
     private GameObject bullet;
 
@@ -61,25 +62,28 @@ public class NetworkScript : MonoBehaviour {
             players[myID].transform.Translate(.1f, 0, 0);
             UpdatePositions(myID);
         }
-        if (spaceBar)
+        if (spaceBar && Time.time > players[myID].nextFire)
         {
-            var go = bullets[GetNextBullet()];
-            go.transform.position = players[myID].transform.position;
-            Debug.Log(myID);
-            if (myID == 0)
-            {
-                go.GetComponent<BulletScript>().velocity = (players[1].transform.position - players[myID].transform.position).normalized;
-            }
-            else
-            {
-                go.GetComponent<BulletScript>().velocity = (players[0].transform.position - players[myID].transform.position).normalized;
-            }
+            players[myID].nextFire = Time.time + players[myID].fireRate;
+            Shoot(myID);
             UpdatePositions(myID);
         }
-
         //network stuff:
-        CheckIncomingMessages();
-            
+        CheckIncomingMessages();   
+    }
+
+    private void Shoot(int myID)
+    {
+        var go = bullets[GetNextBullet()];
+        go.transform.position = players[myID].shootLoc.position;
+
+        if (myID == 0) {
+            go.GetComponent<BulletScript>().velocity = (players[1].transform.position - players[myID].transform.position).normalized;
+        }
+        else
+ {
+            go.GetComponent<BulletScript>().velocity = (players[0].transform.position - players[myID].transform.position).normalized;
+        }
     }
 
     public void Update()
@@ -117,6 +121,12 @@ public class NetworkScript : MonoBehaviour {
                 bullets[j].transform.position = sendData.bulletPos[j];
                 bullets[j].GetComponent<BulletScript>().velocity = sendData.bulletVel[j];
             }
+
+            for (int k = 0; k < players.Length; k++)
+            {
+                players[k].Hits = sendData.hits;
+                players[k].isHit = sendData.isHit;
+            }
         }
 
     }
@@ -126,6 +136,8 @@ public class NetworkScript : MonoBehaviour {
         sendData.id = id;
         sendData.x = players[id].transform.position.x;
         sendData.y = players[id].transform.position.y;
+        sendData.isHit = players[id].isHit;
+        sendData.hits = players[id].Hits;
 
         Vector3[] bulletPos = new Vector3[bulletCache];
         Vector3[] bulletVel = new Vector3[bulletCache];
@@ -143,16 +155,17 @@ public class NetworkScript : MonoBehaviour {
 
         string json = JsonUtility.ToJson(sendData); //Convert to String
         Debug.Log(json);
-        
         connection.Send(json); //send the string
-
     }
 
     void Awake()
     {
+        EmptyObj = new GameObject("Bullet Holder");
         bullets = new GameObject[bulletCache];
+
         for (int i = 0; i<bullets.Length; i++){
-            bullets[i] = Instantiate(bullet, new Vector3(0,0,0), Quaternion.identity);
+            bullets[i] = Instantiate(bullet, new Vector3(-1000,-1000,0), Quaternion.identity);
+            bullets[i].transform.parent = EmptyObj.gameObject.transform;
         }
     }
 
