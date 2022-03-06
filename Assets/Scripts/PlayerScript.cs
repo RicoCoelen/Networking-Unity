@@ -33,16 +33,16 @@ public class PlayerScript : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        //isHit == false &&
-        if ( other.tag == "bullet") {
+        
+        if (isHit == false && other.tag == "bullet") {
             other.gameObject.transform.position = new Vector3(-1000, -1000, 0);
-            //isHit = true;
-            Hits += 1;
+            isHit = true;
+            Hits++;
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        //isHit = false;
+        isHit = false;
     }
 }

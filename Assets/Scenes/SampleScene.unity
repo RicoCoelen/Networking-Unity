@@ -454,6 +454,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isServer: 1
+  FrameLength: 0.05
+  framesInlockStep: 4
   bullet: {fileID: 8499335686724658015, guid: 0d5e8c3e4feb89f46bda23ce772db948, type: 3}
   players:
   - {fileID: 1023995276}

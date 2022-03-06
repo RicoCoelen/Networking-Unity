@@ -7,7 +7,8 @@ public class Sendable
     public float x, y;
     public Vector3[] bulletPos;
     public Vector3[] bulletVel;
-    public int hits;
+    public int hitsP1;
+    public int hitsP2;
     public bool isHit;
     public long time;
     public int framenumber;

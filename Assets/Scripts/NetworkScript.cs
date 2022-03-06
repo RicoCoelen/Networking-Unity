@@ -16,6 +16,12 @@ public class NetworkScript : MonoBehaviour {
     private GameObject[] bullets;
     private GameObject EmptyObj;
 
+    // networking
+    private float AccumilatedTime = 0f;
+    public float FrameLength = 0.05f; //50 miliseconds
+    public float framesInlockStep = 4;
+    private int gameFrame = 0;
+
     [SerializeField]
     private GameObject bullet;
 
@@ -42,37 +48,33 @@ public class NetworkScript : MonoBehaviour {
     }
  
     void FixedUpdate() {
-        if (sendData.framenumber)
+
+        //Check input...
+        if (upKey)
         {
-            //Check input...
-            if (upKey)
-            {
-                players[myID].transform.Translate(0, .1f, 0);
-                UpdatePositions(myID);
-            }
-            if (downKey)
-            {
-                players[myID].transform.Translate(0, -.1f, 0);
-                UpdatePositions(myID);
-            }
-            if (leftKey)
-            {
-                players[myID].transform.Translate(-.1f, 0, 0);
-                UpdatePositions(myID);
-            }
-            if (rightKey)
-            {
-                players[myID].transform.Translate(.1f, 0, 0);
-                UpdatePositions(myID);
-            }
-            if (spaceBar && Time.time > players[myID].nextFire)
-            {
-                Shoot(myID);
-                UpdatePositions(myID);
-            }
+            players[myID].transform.Translate(0, .1f, 0);
+            UpdatePositions(myID);
         }
-        //network stuff:
-        CheckIncomingMessages();
+        if (downKey)
+        {
+            players[myID].transform.Translate(0, -.1f, 0);
+            UpdatePositions(myID);
+        }
+        if (leftKey)
+        {
+            players[myID].transform.Translate(-.1f, 0, 0);
+            UpdatePositions(myID);
+        }
+        if (rightKey)
+        {
+            players[myID].transform.Translate(.1f, 0, 0);
+            UpdatePositions(myID);
+        }
+        if (spaceBar && Time.time > players[myID].nextFire)
+        {
+            Shoot(myID);
+            UpdatePositions(myID);
+        }
     }
 
     private void Shoot(int myID)
@@ -103,6 +105,28 @@ public class NetworkScript : MonoBehaviour {
         if (Input.GetKeyUp("d")) rightKey = false;
         if (Input.GetKeyDown("space")) spaceBar = true;
         if (Input.GetKeyUp("space")) spaceBar = false;
+
+        //Basically same logic as FixedUpdate, but we can scale it by adjusting FrameLength
+        AccumilatedTime = AccumilatedTime + Time.deltaTime;
+
+        //in case the FPS is too slow, we may need to update the game multiple times a frame
+        while (AccumilatedTime > FrameLength)
+        {
+            advanceGameLoop();
+            AccumilatedTime = AccumilatedTime - FrameLength;
+        }
+    }
+
+    public void advanceGameLoop()
+    {
+        gameFrame++;
+        //network stuff:
+        CheckIncomingMessages();
+        UpdatePositions(myID);
+        if (gameFrame == framesInlockStep)
+        {
+            gameFrame = 0;
+        }
     }
 
     void CheckIncomingMessages()
@@ -128,20 +152,20 @@ public class NetworkScript : MonoBehaviour {
 
             for (int k = 0; k < players.Length; k++)
             {
-                players[k].Hits = sendData.hits;
-                players[k].isHit = sendData.isHit;
+                players[0].Hits = sendData.hitsP1;
+                players[1].Hits = sendData.hitsP2;
             }
         }
 
-    }
-    public void UpdatePositions(int id)
+    }    public void UpdatePositions(int id)
     {
         //update sendData-object
         sendData.id = id;
         sendData.x = players[id].transform.position.x;
         sendData.y = players[id].transform.position.y;
         sendData.isHit = players[id].isHit;
-        sendData.hits = players[id].Hits;
+        sendData.hitsP1 = players[0].Hits;
+        sendData.hitsP2 = players[1].Hits;
 
         Vector3[] bulletPos = new Vector3[bulletCache];
         Vector3[] bulletVel = new Vector3[bulletCache];
