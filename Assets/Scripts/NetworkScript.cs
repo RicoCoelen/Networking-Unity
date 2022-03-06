@@ -42,38 +42,42 @@ public class NetworkScript : MonoBehaviour {
     }
  
     void FixedUpdate() {
-        //Check input...
-        if (upKey) {
-            players[myID].transform.Translate(0, .1f, 0);
-            UpdatePositions(myID);
-        }
-        if (downKey)
+        if (sendData.framenumber)
         {
-            players[myID].transform.Translate(0, -.1f, 0);
-            UpdatePositions(myID);
-        }
-        if (leftKey)
-        {
-            players[myID].transform.Translate(-.1f, 0, 0);
-            UpdatePositions(myID);
-        }
-        if (rightKey)
-        {
-            players[myID].transform.Translate(.1f, 0, 0);
-            UpdatePositions(myID);
-        }
-        if (spaceBar && Time.time > players[myID].nextFire)
-        {
-            players[myID].nextFire = Time.time + players[myID].fireRate;
-            Shoot(myID);
-            UpdatePositions(myID);
+            //Check input...
+            if (upKey)
+            {
+                players[myID].transform.Translate(0, .1f, 0);
+                UpdatePositions(myID);
+            }
+            if (downKey)
+            {
+                players[myID].transform.Translate(0, -.1f, 0);
+                UpdatePositions(myID);
+            }
+            if (leftKey)
+            {
+                players[myID].transform.Translate(-.1f, 0, 0);
+                UpdatePositions(myID);
+            }
+            if (rightKey)
+            {
+                players[myID].transform.Translate(.1f, 0, 0);
+                UpdatePositions(myID);
+            }
+            if (spaceBar && Time.time > players[myID].nextFire)
+            {
+                Shoot(myID);
+                UpdatePositions(myID);
+            }
         }
         //network stuff:
-        CheckIncomingMessages();   
+        CheckIncomingMessages();
     }
 
     private void Shoot(int myID)
     {
+        players[myID].nextFire = Time.time + players[myID].fireRate;
         var go = bullets[GetNextBullet()];
         go.transform.position = players[myID].shootLoc.position;
 
